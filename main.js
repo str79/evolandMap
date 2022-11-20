@@ -400,6 +400,7 @@ $(document).ready(function() {
 		
 		mainpic.append(newel);
 	}
+	
 	$('#flyProf .container > h2').on('click',function(event){
 		$('.mainfly').toggleClass('hide');
 	});
@@ -413,11 +414,14 @@ $(document).ready(function() {
 		}
 		return '\t{'+"\n"+ptprops+'\t},'+"\n";
 	}
-	/*$('#flylist > .container > h2').on('click',function(event){
-		$(this).siblings('.maingroups').toggleClass('hide');
-	});*/
+	$('#flylist > .container > h2').on('click',function(event){
+		if (event.altKey){
+			$(this).siblings('.maingroups').toggleClass('hide');
+		}
+	});
 	$('#flylist > .container > h2').dblclick(function(event){
 		var curtext='',alton=0;
+		newGlobhist=[]; //временный массив истории для сортировки
 		if (event.altKey){
 			//Решим частичного вывода
 			alton=1;
@@ -445,9 +449,7 @@ $(document).ready(function() {
 		var profhead='';
 		
 		if (alton){
-			//собираем хэш массив
-			//var dataid=par.data('id')+profSym+self['Profiles'][profileIndex].pointarr;
-			//Array(134) [ "mapoint6@g=nowPt", "mapoint7@g=nowPt", "mapoint8@g=nowPt", "mapoint9@g=nowPt"
+			//сортируем массив ключей профиля в историческом порядке
 			var arrsort=[];
 			for (nindex in Profiles) {
 				//Profiles[nindex].pointarr
@@ -457,17 +459,15 @@ $(document).ready(function() {
 					tmpsort[tmppoint]=preId+(Number(tmpsort[tmppoint])+Profiles[nindex].StartIndex)+profSym+Profiles[nindex].pointarr;
 				}
 				//сортируем индексы
-				//инвертируем в случае отсутствия значения - те, которых нет в истории сдвинутся вперед
+				//инвертируем в случае отсутствия значения в истории - те, которых нет в истории сдвинутся вперед
 				tmpsort.sort((a, b) => ((globhist.indexOf(a)<0 || globhist.indexOf(b)<0)?-(globhist.indexOf(a) - globhist.indexOf(b)):(globhist.indexOf(a) - globhist.indexOf(b))));
 				//Переделываем историю
 				for (tmppoint in tmpsort) {
 					tmppos=globhist.indexOf(tmpsort[tmppoint]);
 					if (tmppos>=0){
-						globhist[tmppos]=preId+(Number(tmppoint)+Profiles[nindex].StartIndex)+profSym+Profiles[nindex].pointarr;
+						newGlobhist[tmppos]=preId+(Number(tmppoint)+Profiles[nindex].StartIndex)+profSym+Profiles[nindex].pointarr;
 					}					
 				}
-				//update history
-				setCookie(historyName,JSON.stringify(globhist),{expires:60*60*24*30,path:'/'})
 				//удаляем дополнения
 				for (tmppoint in tmpsort) {
 					tmpsort[tmppoint]=(Number(tmpsort[tmppoint].split(profSym)[0].replace(preId,''))-Profiles[nindex].StartIndex);
@@ -476,6 +476,8 @@ $(document).ready(function() {
 				arrsort[nindex]=tmpsort;
 			}
 			//на выходе получаем массив нужного профиля с индексами в нужном порядке
+			//update history
+			setCookie(historyName,JSON.stringify(newGlobhist),{expires:60*60*24*30,path:'/'})
 		}
 		//Собираем профили
 		for (nindex in Profiles) {
@@ -1601,49 +1603,49 @@ $(document).ready(function() {
 		/*var matches = document.cookie.match(new RegExp(
 			"(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
 		));*/
-		//if (!matches){
+		//if (!matches){}
 		matches=[];
 		matches[1]=localStorage.getItem(historyName);
-	//}
-	ret=matches ? decodeURIComponent(matches[1]) : undefined;
-	
-	return ret;
-}	
-function setCookie(name, value, options) {
-	/*options = options || {};
+		ret=matches ? decodeURIComponent(matches[1]) : undefined;
 		
-		var expires = options.expires;
+		return ret;
 		
-		if (typeof expires == "number" && expires) {
-		var d = new Date();
-		d.setTime(d.getTime() + expires * 1000);
-		expires = options.expires = d;
-		}
-		if (expires && expires.toUTCString) {
-		options.expires = expires.toUTCString();
-	}*/
-	
-	value = encodeURIComponent(value);
-	
-	/*var updatedCookie = name + "=" + value;
+	}
+	function setCookie(name, value, options={expires:60*60*24*30,path:'/'}) {
+		/*options = options || {};
+			
+			var expires = options.expires;
+			
+			if (typeof expires == "number" && expires) {
+			var d = new Date();
+			d.setTime(d.getTime() + expires * 1000);
+			expires = options.expires = d;
+			}
+			if (expires && expires.toUTCString) {
+			options.expires = expires.toUTCString();
+		}*/
 		
-		for (var propName in options) {
-		updatedCookie += "; " + propName;
-		var propValue = options[propName];
-		if (propValue !== true) {
-		updatedCookie += "=" + propValue;
-		}
-	}*/
+		value = encodeURIComponent(value);
+		
+		/*var updatedCookie = name + "=" + value;
+			
+			for (var propName in options) {
+			updatedCookie += "; " + propName;
+			var propValue = options[propName];
+			if (propValue !== true) {
+			updatedCookie += "=" + propValue;
+			}
+		}*/
+		
+		//document.cookie = updatedCookie;
+		localStorage.setItem(name, value);
+	}
+	function deleteCookie(name) {
+		localStorage.removeItem(name);
+		/*setCookie(name, "", {
+			expires: -1
+		})*/
+	}	
 	
-	//document.cookie = updatedCookie;
-	localStorage.setItem(name, value);
-}
-function deleteCookie(name) {
-	localStorage.removeItem(name);
-	/*setCookie(name, "", {
-		expires: -1
-	})*/
-}	
-
 //работа с куками
 });																									 	
