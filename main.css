@@ -281,3 +281,7 @@ font-size: 2rem;
 background: #979994b3;
 cursor: pointer;
 }
+.hMove{
+	border-bottom: 2px solid #00b;
+	display: inline-block;
+}

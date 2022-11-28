@@ -1,6 +1,6 @@
 var keymove=0;
-var gmove=0;
-var gsize=0;
+var gmove=0; //global move - перемещение
+var gsize=0; //gloval size - изменения расстояния всех значков
 var invIndex=0;
 /*
 	на будущее
@@ -15,19 +15,21 @@ var invIndex=0;
 $(document).ready(function() {
 	var mapcircle=0; //признак что курсор находится на точке-круге.
 	var maptarget=null;
+	var movehist=0; //режим перемещения элементов истории
 	var mapposx=null,mapposy=null;
 	var mapposcx=null,mapposcy=null;
 	var circlept=0;  //признак что включен информационный прямоугольник
 	var Selectpt=0;  //признак что включен прямоугольник выделения
-	var defaultProfile=0;
-	var profileIndex=defaultProfile;
+	var defaultProfile=0; //профиль по дефолту.
+	var profileIndex=defaultProfile; //текущий профиль.
 	var gTmpArr={};
 	var selectedArr=[]; //массив выделенных элементов
-	var historyName;
-	let profSym='@g=';
-	var preId='mapoint';
+	var historyName; //имя массива истории
+	let profSym='@g='; //символ разделитель между профилем и точкой, для истории
+	var preId='mapoint'; //ид перед названием точки
 	var activeongroups=1; //включать ли категории (в начале и при переключении профилей-карт)
 	var lastId; //последний ид точки-круга (для применения действий над ним)
+	var histMoveNum; //номер перемещаемого элемента
 	
 	//загрузка истории
 	historyName=$('.historyName').text();
@@ -1321,17 +1323,72 @@ $(document).ready(function() {
 			}
 		}
 		UpdateCountGr(groupnum);
-	});				
-	$('#flylist .list-group-item-text').hover(
-		function(){
-			var el=$(this);
-			$('#'+el.data('id')).addClass('highlight');
-		},
-		function(){
-			var el=$(this);
-			$('#'+el.data('id')).removeClass('highlight');
+	});
+	$('#flylist').on('click','.autohist .list-group-item-text',function(e){
+		//console.log(e);
+		if (e.shiftKey){
+			if (movehist==1){
+				movehist=0;
+				//просто отмена
+				$(this).removeClass('hMove');
+			}
+			else{
+				movehist=1;
+				var el=$(this);
+				var elstr=el.data('id')+profSym+el.data('prof');
+				histMoveNum=globhist.indexOf(elstr);
+			}
+			}else{
+			if (movehist==1){
+				//просто отмена
+				movehist=0;
+				var el=$(this);
+				el.removeClass('hMove');
+				
+				var elstr=el.data('id')+profSym+el.data('prof');
+				if (histMoveNum>=0 && elstr!=globhist[histMoveNum]){
+					//удаляем первый элемент
+					var elstr1=globhist[histMoveNum];
+					//console.log(elstr1);
+					globhist.splice(histMoveNum, 1);
+					//console.log(globhist);
+					
+					//перемещаем историю
+					var elpos=globhist.indexOf(elstr);
+					if (elpos>=0){
+						//нашли в истории, добавляем
+						//console.log(elstr);
+						globhist.splice(elpos, 0,elstr1);
+						//console.log(globhist);
+						$('#flylist .autohist .list-group-item-text').remove();
+						loadhist();
+						//update history
+						setCookie(historyName,JSON.stringify(globhist));
+					}
+				}
+			}
 		}
-	);
+	});
+	$('#flylist').on({
+		mouseenter: function () {
+			var el=$(this);
+			var ishist=el.parent().hasClass('autohist');
+			$('#'+el.data('id')).addClass('highlight');
+			
+			if (ishist && movehist){
+				el.addClass('hMove')
+			}
+		},
+		mouseleave: function () {
+			var el=$(this);
+			var ishist=el.parent().hasClass('autohist');
+			$('#'+el.data('id')).removeClass('highlight');
+			
+			if (ishist && movehist){
+				el.removeClass('hMove')
+			}
+		}
+	}, ".list-group-item-text"); 
 	$('#mainpic').on('mouseenter','.mycircle',function(){
 		lastId=this.id;
 	});
@@ -1647,5 +1704,5 @@ $(document).ready(function() {
 		})*/
 	}	
 	
-//работа с куками
-});																									 	
+	//работа с куками
+});																									 			
