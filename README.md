@@ -1,4 +1,4 @@
-# evolandMap
-Evoland 2 map
+# might-and-magic-8-maps
+might and magic 8 maps
 
-read help
+engine version 1.26
